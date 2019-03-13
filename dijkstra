@@ -1,0 +1,92 @@
+// Сам граф
+const graph = {
+start: {A: 4, B: 5},
+A: {B: 5, C: 4, D: 2},
+B: {A: 5, D: 7, E: 12},
+C: {A: 4, E: 3},
+D: {A: 2, B: 7, E: 1},
+E: {C: 3, F: 4, G: 3, H: 3},
+F: {E: 4, G: 8, H: 4},
+G: {E: 4, F: 4, H: 2, finish: 6},
+H: {E: 3, F: 4, G: 2, finish: 1},
+finish: {G: 6, H: 1}
+};
+
+
+// находит самый дешевый узел
+const lowestCost = (costs, processed) => {
+  return Object.keys(costs).reduce((lowest, node) => {
+    if (lowest === null || costs[node] < costs[lowest]) {
+      if (!processed.includes(node)) {
+        lowest = node;
+      }
+    }
+    return lowest;
+  }, null);
+};
+
+// сама функция
+const dijkstra = (graph) => {
+
+  // создаем объект с ценами узлов
+  const costs = Object.assign({finish: Infinity}, graph.start);
+
+  // формирует путь
+  const parents = {finish: null};
+  
+  //  добавляем начальные элементы
+  for (let neighbor in graph.start) {
+    parents[neighbor] = 'start';
+  }
+
+  // отслеживает процесс
+  const processed = [];
+
+  // определяем первый узел для обработки   
+  let node = lowestCost(costs, processed);
+
+  while (node) {
+    // стоимость узла
+    let cost = costs[node];
+    // получить дочерние узлы    
+    let neighbor = graph[node];
+    // проверяем все дочерние узлы поочереди
+    for (let n in neighbor) {
+      let newCost = cost + neighbor[n];
+      // если цены у узла еще не было то добавляем
+      if (!costs[n]) {
+        costs[n] = newCost;
+        parents[n] = node;
+      }
+      // или если цена меньше, чем старая, то обновляем
+      if (costs[n] > newCost) {
+        costs[n] = newCost;
+        parents[n] = node;
+      }
+    }
+    // когда узел полностью обработали, отправляем его в трек процесса
+    processed.push(node);
+    // берем новый узел
+    node = lowestCost(costs, processed);
+  }
+
+  // формируем путь
+  let optimalPath = ['finish'];
+  let parent = parents.finish;
+  while (parent) {
+    optimalPath.push(parent);
+    parent = parents[parent];
+  }
+  // переворачиваем путь, чтобы он был в нужную сторону
+  optimalPath.reverse();
+
+  // формируем результат
+  const results = {
+    distance: costs.finish,
+    path: optimalPath
+  };
+
+  return results;
+};
+
+console.log(dijkstra(graph));
